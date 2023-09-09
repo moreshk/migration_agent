@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI powered helpful student migration assistant</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #chat-box {
+            height: calc(100vh - 150px);
+            border: 1px solid #ccc;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        #user-input {
+            margin-top: 20px;
+            position: relative;
+        }
+        #send {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+        }
+        .message-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            margin: 5px 0;
+        }
+        .message-wrapper.bot {
+            justify-content: flex-end;
+        }
+        .user-message, .bot-message {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .user-message {
+            background-color: #f1f1f1;
+        }
+        .bot-message {
+            background-color: #add8e6;
+            color: black;
+        }
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI powered helpful student migration assistant</h1>
+    <div id="chat-box">
+    </div>
+    <div id="user-input">
+        <input type="text" id="message" class="form-control" placeholder="Type your message..." style="padding-right: 80px;">
+        <button id="send" class="btn btn-primary">Send</button>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $("#send").click(function() {
+            const user_input = $("#message").val();
+            $("#chat-box").append(`<div class="message-wrapper"><div class="user-message">${user_input}</div></div>`);
+            $("#message").val('');
+
+            $.ajax({
+                url: '/chat',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ "user_input": user_input }),
+                success: function(data) {
+                    const response = data.response.replace(/\n/g, "<br>");
+                    $("#chat-box").append(`<div class="message-wrapper bot"><div class="bot-message">${response}</div></div>`);
+                    $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+                }
+            });
+        });
+
+        $("#message").keypress(function(e) {
+            if (e.which == 13) {
+                $("#send").click();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
