@@ -1,0 +1,8 @@
+openai
+langchain
+pinecone-client
+pinecone-text
+google-search-results
+tiktoken
+python-dotenv
+aiohttp
