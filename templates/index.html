@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>AI powered helpful student migration assistant</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -10,45 +11,70 @@
             padding: 20px;
             overflow-y: auto;
         }
+
         #user-input {
             margin-top: 20px;
             position: relative;
         }
+
         #send {
             position: absolute;
             right: 0;
             top: 0;
             height: 100%;
         }
+
         .message-wrapper {
             width: 100%;
             display: flex;
             justify-content: flex-start;
             margin: 5px 0;
         }
+
         .message-wrapper.bot {
             justify-content: flex-end;
         }
-        .user-message, .bot-message {
+
+        .user-message,
+        .bot-message {
             max-width: 70%;
             padding: 10px;
             border-radius: 12px;
             display: inline-block;
         }
+
         .user-message {
             background-color: #f1f1f1;
         }
+
         .bot-message {
             background-color: #add8e6;
             color: black;
         }
+
         h1 {
             text-align: center;
         }
+
+         /* Add this for the spinner */
+         .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
-<body>
 
+<body>
+    
 <div class="container">
     <h1>AI powered helpful student migration assistant</h1>
     <div id="chat-box">
@@ -67,12 +93,26 @@
             $("#chat-box").append(`<div class="message-wrapper"><div class="user-message">${user_input}</div></div>`);
             $("#message").val('');
 
+            // Disable input box
+            $("#message").prop("disabled", true);
+            $("#send").prop("disabled", true);
+
+            // Show spinner
+            $("#chat-box").append(`<div class="message-wrapper bot"><div class="spinner"></div></div>`);
+
             $.ajax({
                 url: '/chat',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ "user_input": user_input }),
                 success: function(data) {
+                    // Remove spinner
+                    $(".spinner").parent().remove();
+
+                    // Enable input box
+                    $("#message").prop("disabled", false);
+                    $("#send").prop("disabled", false);
+
                     const response = data.response.replace(/\n/g, "<br>");
                     $("#chat-box").append(`<div class="message-wrapper bot"><div class="bot-message">${response}</div></div>`);
                     $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
