@@ -1,23 +1,3 @@
-from flask import Flask, request, jsonify, render_template
-from langchain import SerpAPIWrapper
-from langchain.agents.agent_toolkits import create_retriever_tool
-from langchain.vectorstores import Pinecone
-import pinecone
-import os
-from dotenv import load_dotenv
-from langchain.tools import Tool
-from langchain.chat_models import ChatOpenAI
-from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
-from typing import Optional, Dict, Any, Tuple
-import sys
-import aiohttp
-
-# Initialize Flask app
-app = Flask(__name__)
-
-# Your existing setup code
-load_dotenv()
-
 from langchain import SerpAPIWrapper
 from langchain.agents.agent_toolkits import create_retriever_tool
 from langchain.vectorstores import Pinecone
@@ -115,12 +95,12 @@ search = CustomSerpAPIWrapper(serpapi_api_key=os.getenv("SERPAPI_API_KEY"))
 
 
 from langchain.tools import Tool
-# Tool.from_function(
-#         func=search.run,
-#         name="Search",
-#         description="useful for when you need to answer questions about current wait times, processing times for Australian student visas"
-#         # coroutine= ... <- you can specify an async method if desired as well
-#     )
+Tool.from_function(
+        func=search.run,
+        name="Search",
+        description="useful for when you need to answer questions about current wait times, processing times for Australian student visas"
+        # coroutine= ... <- you can specify an async method if desired as well
+    )
 tool1 = create_retriever_tool(
     vector_store.as_retriever(),
     "search_latest_immigration",
@@ -136,12 +116,12 @@ tool1 = create_retriever_tool(
     Extended Post-Study Work Rights,
     Benefits for Students in Regional Areas"""
 )
-# tool2 = Tool.from_function(
-#         func=search.run,
-#         name="Search",
-#         description="useful for answering queries like visa wait times, processing times "
-#         # coroutine= ... <- you can specify an async method if desired as well
-#     )
+tool2 = Tool.from_function(
+        func=search.run,
+        name="Search",
+        description="useful for answering queries like visa wait times, processing times "
+        # coroutine= ... <- you can specify an async method if desired as well
+    )
 
 def search_with_site(query: str, **kwargs: Any) -> str:
     return search.run(query, site="https://visaenvoy.com/processing-times/student-visa/", **kwargs)
@@ -156,9 +136,14 @@ tool2 = Tool.from_function(
 tools = [tool1, tool2]
 from langchain.chat_models import ChatOpenAI
 llm = ChatOpenAI(temperature = 0, openai_api_key="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", model="gpt-3.5-turbo-16k")
-from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
+# from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
+# agent_executor = create_conversational_retrieval_agent(llm, tools, verbose=True)
+# # result = agent_executor({"input": "hi, im bob"})
+# # result = agent_executor({"input": "Who am i?"})
+# result = agent_executor({"input": "What visa do I need to study in Australia"})
+# result = agent_executor({"input": "What are the current wait times for a student visa in Australia?"})
+# result = agent_executor({"input": "Are there any benefits to study in a regional area?"})
 
-# New code
 # This is needed for both the memory and the prompt
 memory_key = "history"
 
@@ -185,31 +170,9 @@ from langchain.agents import AgentExecutor
 
 agent_executor = AgentExecutor(agent=agent, tools=tools, memory=memory, verbose=True,
                                    return_intermediate_steps=True)
-# End of new code
 
-# Initialize your chatbot agent
-# agent_executor = create_conversational_retrieval_agent(llm, tools, verbose=True)
-
-@app.route('/')
-def index():
-    """Render the chat interface."""
-    return render_template('index.html')
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    """Handle chat requests from the frontend."""
-    user_input = request.json['user_input']
-    
-    print(f"Received user input: {user_input}")  # Debugging line
-    
-    # Use your chatbot logic to generate a response
-    result = agent_executor({"input": user_input})
-    
-    print(f"Generated result: {result}")  # Debugging line
-
-    response = result.get("output", "Sorry, I couldn't understand that.")
-    
-    return jsonify({"response": response})
-
-if __name__ == '__main__':
-    app.run(debug=True)
+result = agent_executor({"input": "hi, im bob"})
+result = agent_executor({"input": "Who am I?"})
+result = agent_executor({"input": "Who are you?"})
+result = agent_executor({"input": "What is the advantage of studying in the regions?"})
+result = agent_executor({"input": "What is the processing time for student visas"})
