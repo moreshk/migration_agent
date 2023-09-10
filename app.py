@@ -155,7 +155,7 @@ tool2 = Tool.from_function(
 
 tools = [tool1, tool2]
 from langchain.chat_models import ChatOpenAI
-llm = ChatOpenAI(temperature = 0, openai_api_key="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", model="gpt-3.5-turbo-16k")
+llm = ChatOpenAI(temperature = 0, openai_api_key=os.getenv("OPENAI_API_KEY"), model="gpt-3.5-turbo-16k")
 from langchain.agents.agent_toolkits import create_conversational_retrieval_agent
 
 # New code

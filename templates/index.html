@@ -1,8 +1,8 @@
-<!DOCTYPE html>
 <html>
 
 <head>
     <title>AI powered helpful student migration assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         #chat-box {
@@ -56,8 +56,28 @@
             text-align: center;
         }
 
-         /* Add this for the spinner */
-         .spinner {
+        /* Add responsive styles */
+        @media (max-width: 768px) {
+            #chat-box {
+                height: calc(100vh - 250px);
+            }
+
+            .user-message,
+            .bot-message {
+                font-size: 18px;
+            }
+
+            #message {
+                font-size: 18px;
+            }
+
+            #send {
+                font-size: 18px;
+            }
+        }
+
+        /* Add this for the spinner */
+        .spinner {
             border: 5px solid #f3f3f3;
             border-top: 5px solid #3498db;
             border-radius: 50%;
@@ -65,68 +85,75 @@
             height: 30px;
             animation: spin 2s linear infinite;
         }
-        
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
 
 <body>
-    
-<div class="container">
-    <h1>AI powered helpful student migration assistant</h1>
-    <div id="chat-box">
+
+    <div class="container">
+        <h1>AI powered helpful student migration assistant</h1>
+        <div id="chat-box">
+        </div>
+        <div id="user-input">
+            <input type="text" id="message" class="form-control" placeholder="Type your message..."
+                style="padding-right: 80px;">
+            <button id="send" class="btn btn-primary">Send</button>
+        </div>
     </div>
-    <div id="user-input">
-        <input type="text" id="message" class="form-control" placeholder="Type your message..." style="padding-right: 80px;">
-        <button id="send" class="btn btn-primary">Send</button>
-    </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $("#send").click(function() {
-            const user_input = $("#message").val();
-            $("#chat-box").append(`<div class="message-wrapper"><div class="user-message">${user_input}</div></div>`);
-            $("#message").val('');
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#send").click(function () {
+                const user_input = $("#message").val();
+                $("#chat-box").append(`<div class="message-wrapper"><div class="user-message">${user_input}</div></div>`);
+                $("#message").val('');
 
-            // Disable input box
-            $("#message").prop("disabled", true);
-            $("#send").prop("disabled", true);
+                // Disable input box
+                $("#message").prop("disabled", true);
+                $("#send").prop("disabled", true);
 
-            // Show spinner
-            $("#chat-box").append(`<div class="message-wrapper bot"><div class="spinner"></div></div>`);
+                // Show spinner
+                $("#chat-box").append(`<div class="message-wrapper bot"><div class="spinner"></div></div>`);
 
-            $.ajax({
-                url: '/chat',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ "user_input": user_input }),
-                success: function(data) {
-                    // Remove spinner
-                    $(".spinner").parent().remove();
+                $.ajax({
+                    url: '/chat',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ "user_input": user_input }),
+                    success: function (data) {
+                        // Remove spinner
+                        $(".spinner").parent().remove();
 
-                    // Enable input box
-                    $("#message").prop("disabled", false);
-                    $("#send").prop("disabled", false);
+                        // Enable input box
+                        $("#message").prop("disabled", false);
+                        $("#send").prop("disabled", false);
 
-                    const response = data.response.replace(/\n/g, "<br>");
-                    $("#chat-box").append(`<div class="message-wrapper bot"><div class="bot-message">${response}</div></div>`);
-                    $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+                        const response = data.response.replace(/\n/g, "<br>");
+                        $("#chat-box").append(`<div class="message-wrapper bot"><div class="bot-message">${response}</div></div>`);
+                        $("#chat-box").scrollTop($("#chat-box")[0].scrollHeight);
+                    }
+                });
+            });
+
+            $("#message").keypress(function (e) {
+                if (e.which == 13) {
+                    $("#send").click();
                 }
             });
         });
-
-        $("#message").keypress(function(e) {
-            if (e.which == 13) {
-                $("#send").click();
-            }
-        });
-    });
-</script>
+    </script>
 
 </body>
+
 </html>
