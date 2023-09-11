@@ -1,3 +1,6 @@
+import sqlite3
+from datetime import datetime
+
 from flask import Flask, request, jsonify, render_template
 from langchain import SerpAPIWrapper
 from langchain.agents.agent_toolkits import create_retriever_tool
@@ -11,6 +14,7 @@ from langchain.agents.agent_toolkits import create_conversational_retrieval_agen
 from typing import Optional, Dict, Any, Tuple
 import sys
 import aiohttp
+
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -35,6 +39,19 @@ load_dotenv()
 
 from typing import Optional, Dict, Any
 
+# New code for SQLite
+# Initialize SQLite database
+def init_db():
+    conn = sqlite3.connect('chat_records.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS messages
+                 (timestamp TEXT, session_id TEXT, user_ip TEXT, user_message TEXT, bot_response TEXT)''')
+    conn.commit()
+    conn.close()
+
+# Call init_db to make sure the database and table are created
+init_db()
+#New code for SQLite end
 
 class HiddenPrints:
     """Context manager to hide prints."""
@@ -195,10 +212,33 @@ def index():
     """Render the chat interface."""
     return render_template('index.html')
 
+# @app.route('/chat', methods=['POST'])
+# def chat():
+#     """Handle chat requests from the frontend."""
+#     user_input = request.json['user_input']
+    
+#     print(f"Received user input: {user_input}")  # Debugging line
+    
+#     # Use your chatbot logic to generate a response
+#     result = agent_executor({"input": user_input})
+    
+#     print(f"Generated result: {result}")  # Debugging line
+
+#     response = result.get("output", "Sorry, I couldn't understand that.")
+    
+#     return jsonify({"response": response})
+
 @app.route('/chat', methods=['POST'])
 def chat():
     """Handle chat requests from the frontend."""
     user_input = request.json['user_input']
+    
+    # Get session ID and user IP
+    session_id = request.cookies.get('session_id', 'Unknown')
+    user_ip = request.remote_addr
+    
+    # Get the current timestamp
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     print(f"Received user input: {user_input}")  # Debugging line
     
@@ -208,6 +248,14 @@ def chat():
     print(f"Generated result: {result}")  # Debugging line
 
     response = result.get("output", "Sorry, I couldn't understand that.")
+    
+    # Insert the conversation into the database
+    conn = sqlite3.connect('chat_records.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO messages (timestamp, session_id, user_ip, user_message, bot_response) VALUES (?, ?, ?, ?, ?)",
+              (current_time, session_id, user_ip, user_input, response))
+    conn.commit()
+    conn.close()
     
     return jsonify({"response": response})
 
